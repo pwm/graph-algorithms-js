@@ -1,4 +1,4 @@
-(function () { 'use strict';
+(() => { 'use strict';
 
     const DAG = (() => {
         function DAG(vertexKeys, edgeList) {
