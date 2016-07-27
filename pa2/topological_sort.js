@@ -64,7 +64,6 @@
             vertex.visited = true;
             for (let i = 0; i < adjacencyList[vertex.id].length; i++) {
                 const nextAdjacentVertex = adjacencyList[vertex.id][i];
-                //if (nextAdjacentVertex instanceof Vertex && nextAdjacentVertex.visited === false) {
                 if (nextAdjacentVertex.visited === false) {
                     clock = explore(nextAdjacentVertex, adjacencyList, clock);
                 }
