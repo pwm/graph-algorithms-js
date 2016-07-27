@@ -29,6 +29,14 @@
                 }
             },
 
+            displayAdjacencyList: function () {
+                for (var i = 0; i < this.adjacencyList.length; i++) {
+                    if (this.adjacencyList[i] !== undefined) {
+                        console.log(i, this.adjacencyList[i].map(function (v) { return v.id; }));
+                    }
+                }
+            },
+
             addEdge: function (from, to) {
                 var vertexFrom = this.vertices[from];
                 var vertexTo = this.vertices[to];
@@ -40,24 +48,42 @@
                 }
             },
 
-            isConnected: function (start, end) {
+            isConnected: function (start, end, exploreType) {
                 var vertexStart = this.vertices[start];
                 var vertexEnd = this.vertices[end];
                 if (! (vertexStart instanceof Vertex) || ! (vertexEnd instanceof Vertex)) {
                     return false;
                 }
-                this.explore(vertexStart);
+                exploreType === 'r' ? this.exploreR(vertexStart) : this.exploreI(vertexStart);
                 return vertexEnd.visited === true;
             },
 
-            explore: function (vertex) {
+            exploreR: function (vertex) {
                 vertex.visited = true;
                 for (var i = 0; i < this.adjacencyList[vertex.id].length; i++) {
                     var currentVertex = this.adjacencyList[vertex.id][i];
                     if (currentVertex instanceof Vertex && currentVertex.visited === false) {
-                        this.explore(currentVertex);
+                        this.exploreR(currentVertex);
                     }
                 }
+            },
+
+            exploreI: function (vertex) {
+                var stack = [];
+                vertex.visited = true;
+                stack.push(vertex);
+                do {
+                    for (var i = 0; i < this.adjacencyList[vertex.id].length; i++) {
+                        var adjacentVertex = this.adjacencyList[vertex.id][i];
+                        if (adjacentVertex.visited === false) {
+                            vertex = adjacentVertex;
+                            vertex.visited = true;
+                            stack.push(vertex);
+                            i = 0;
+                        }
+                    }
+                    vertex = stack.pop();
+                } while (stack.length !== 0);
             }
         };
 
@@ -81,6 +107,9 @@
 
     var g = new G(numberOfVertices);
     g.buildAdjacencyList(lines);
-    console.log(g.isConnected(start, end) ? 1 : 0);
+    console.log(g.isConnected(start, end, 'r') ? 1 : 0);
+    var g2 = new G(numberOfVertices);
+    g2.buildAdjacencyList(lines);
+    console.log(g2.isConnected(start, end, 'i') ? 1 : 0);
 
 })();
