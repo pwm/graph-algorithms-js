@@ -6,8 +6,8 @@
             this.adjacencyList = new Map();
             this.distances = new Map();
             this.previousVertex = new Map();
-            this.infDistance = this.vertices.length > edgeList.length
-                ? this.vertices.length
+            this.infDistance = vertexKeys > edgeList.length
+                ? vertexKeys
                 : edgeList.length;
             this._init(vertexKeys, edgeList);
         }
@@ -27,6 +27,9 @@
                 // same vertex
                 if (end === start) {
                     return 0;
+                }
+                if (this.adjacencyList.get(start).length === 0 || this.adjacencyList.get(end).length === 0) {
+                    return -1;
                 }
                 this._bfs(this.vertices.get(start));
                 return this.distances.get(end) !== this.infDistance
@@ -122,6 +125,7 @@
     var end = parseInt(verticesToConnect.split(' ')[1]);
     // note: lines = edgeList
 
-    console.log((new UG(vertexKeys, lines)).shortestPath(start, end));
+    const ug = new UG(vertexKeys, lines);
+    console.log(ug.shortestPath(start, end));
 
 })();
