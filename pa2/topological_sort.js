@@ -2,9 +2,7 @@
 
     const DAG = (() => {
         function DAG(vertexKeys, edgeList) {
-            const tmpArray = init(vertexKeys);
-            this.vertices = tmpArray[0];
-            this.adjacencyList = tmpArray[1];
+            [this.vertices, this.adjacencyList] = init(vertexKeys);
             buildAdjacencyList(edgeList, this.vertices, this.adjacencyList);
         }
 

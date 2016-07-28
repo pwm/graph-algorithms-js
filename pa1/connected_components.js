@@ -1,7 +1,7 @@
 (function () { 'use strict';
 
-    var G = (function () {
-        function G(numberOfVertices) {
+    var UG = (function () {
+        function UG(numberOfVertices) {
             this.numberOfVertices = numberOfVertices;
             this.vertices = [];
             this.adjacencyList = [];
@@ -17,8 +17,8 @@
             return Vertex;
         })();
 
-        G.prototype = {
-            constructor: G,
+        UG.prototype = {
+            constructor: UG,
 
             init: function () {
                 for (var v = 1; v <= this.numberOfVertices; v++) {
@@ -69,7 +69,7 @@
             }
         };
 
-        return G;
+        return UG;
     })();
 
     ////////////////////////////////
@@ -83,8 +83,8 @@
     var verticesEdges = lines.shift();
     var numberOfVertices = parseInt(verticesEdges.split(' ')[0]);
 
-    var g = new G(numberOfVertices);
-    g.buildAdjacencyList(lines);
-    console.log(g.dfs());
+    var ug = new UG(numberOfVertices);
+    ug.buildAdjacencyList(lines);
+    console.log(ug.dfs());
 
 })();
