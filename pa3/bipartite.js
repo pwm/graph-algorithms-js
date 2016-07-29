@@ -1,28 +1,32 @@
 'use strict';
 
 const UG = (() => {
+    const params = new WeakMap();
+
     class UG {
         constructor(vertexKeys, edgeList) {
-            this.vertices = new Map();
-            this.adjacencyList = new Map();
-            this.distances = new Map();
-            this.previousVertex = new Map();
-            this.infDistance = vertexKeys > edgeList.length
-                ? vertexKeys
-                : edgeList.length;
+            params.set(this, {
+                vertices: new Map(),
+                adjacencyList: new Map(),
+                distances: new Map(),
+                previousVertex: new Map(),
+                infDistance: vertexKeys > edgeList.length
+                    ? vertexKeys
+                    : edgeList.length
+            });
             this._init(vertexKeys, edgeList);
         }
 
         isBipartite() {
-            return this._bfs(this.vertices.values().next().value);
+            return this._bfs(params.get(this).vertices.values().next().value);
         }
 
         _init(vertexKeys, edgeList) {
             for (let vertexKey = 1; vertexKey <= vertexKeys; vertexKey++) {
-                this.vertices.set(vertexKey, new Vertex(vertexKey));
-                this.adjacencyList.set(vertexKey, []);
-                this.distances.set(vertexKey, this.infDistance);
-                this.previousVertex.set(vertexKey, null);
+                params.get(this).vertices.set(vertexKey, new Vertex(vertexKey));
+                params.get(this).adjacencyList.set(vertexKey, []);
+                params.get(this).distances.set(vertexKey, params.get(this).infDistance);
+                params.get(this).previousVertex.set(vertexKey, null);
             }
             this._buildAdjacencyList(edgeList);
         }
@@ -31,13 +35,16 @@ const UG = (() => {
             edgeList.forEach((edge) => {
                 const from = parseInt(edge.split(' ')[0]),
                     to = parseInt(edge.split(' ')[1]);
-                this._addEdge(this.vertices.get(from), this.vertices.get(to));
+                this._addEdge(
+                    params.get(this).vertices.get(from),
+                    params.get(this).vertices.get(to)
+                );
             });
         }
 
         _addEdge(vertexFrom, vertexTo) {
-            const vertexFromAdjList = this.adjacencyList.get(vertexFrom.id);
-            const vertexToAdjList = this.adjacencyList.get(vertexTo.id);
+            const vertexFromAdjList = params.get(this).adjacencyList.get(vertexFrom.id);
+            const vertexToAdjList = params.get(this).adjacencyList.get(vertexTo.id);
             if (!vertexFromAdjList.includes(vertexTo.id)) {
                 vertexFromAdjList.push(vertexTo);
             }
@@ -48,19 +55,19 @@ const UG = (() => {
 
         _bfs(startVertex) {
             const discoveredVerticesQueue = [];
-            this.distances.set(startVertex.id, 0);
+            params.get(this).distances.set(startVertex.id, 0);
             discoveredVerticesQueue.push(startVertex);
             while (discoveredVerticesQueue.length > 0) {
                 const currentVertex = discoveredVerticesQueue.shift();
-                const currentVertexAdjList = this.adjacencyList.get(currentVertex.id);
+                const currentVertexAdjList = params.get(this).adjacencyList.get(currentVertex.id);
                 for (let adjVertex of currentVertexAdjList) {
-                    if (this.distances.get(adjVertex.id) !== this.infDistance &&
-                        this.distances.get(adjVertex.id) === this.distances.get(currentVertex.id)) {
+                    if (params.get(this).distances.get(adjVertex.id) !== params.get(this).infDistance &&
+                        params.get(this).distances.get(adjVertex.id) === params.get(this).distances.get(currentVertex.id)) {
                         return 0;
-                    } else if (this.distances.get(adjVertex.id) === this.infDistance) {
+                    } else if (params.get(this).distances.get(adjVertex.id) === params.get(this).infDistance) {
                         discoveredVerticesQueue.push(adjVertex);
-                        this.distances.set(adjVertex.id, this.distances.get(currentVertex.id) + 1);
-                        this.previousVertex.set(adjVertex.id, currentVertex.id);
+                        params.get(this).distances.set(adjVertex.id, params.get(this).distances.get(currentVertex.id) + 1);
+                        params.get(this).previousVertex.set(adjVertex.id, currentVertex.id);
                     }
                 }
             }
@@ -99,5 +106,5 @@ const verticesEdges = lines.shift();
 const vertexKeys = parseInt(verticesEdges.split(' ')[0]);
 // note: lines = edgeList
 
-const ug = new UG(vertexKeys, lines);
-console.log(ug.isBipartite());
+// output if input graph is bipartite
+console.log((new UG(vertexKeys, lines)).isBipartite());
