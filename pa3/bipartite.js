@@ -86,25 +86,24 @@ const UG = (() => {
 
 ////////////////////////////////
 
-const fs = require('fs');
-const input = (process.argv.length === 3) ? process.argv[2] : '/dev/stdin';
-
-let data = [];
-try {
-    data = fs.readFileSync(input,'utf8');
-} catch (e) {
-    if (e.code === 'ENOENT') {
-        console.log('File not found!');
-        process.exit();
+function readInputFile() {
+    const argv = process.argv;
+    try {
+        return require('fs').readFileSync(argv.length === 3 ? argv[2] : '/dev/stdin', 'utf8');
+    } catch (e) {
+        if (e.code === 'ENOENT') {
+            console.log('File not found!');
+            process.exit();
+        }
+        throw e;
     }
-    throw e;
 }
 
-const lines = data.match(/[^\r\n]+/g);
+////////////////////////////////
 
-const verticesEdges = lines.shift();
+const lines = readInputFile().match(/[^\r\n]+/g);
+const verticesEdges = lines.shift(); // note: lines = edgeList after this
 const vertexKeys = parseInt(verticesEdges.split(' ')[0]);
-// note: lines = edgeList
 
 // output if input graph is bipartite
 console.log((new UG(vertexKeys, lines)).isBipartite());
