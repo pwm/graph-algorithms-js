@@ -28,10 +28,13 @@
                 if (end === start) {
                     return 0;
                 }
+                // start or end has no adjacent vertices
                 if (this.adjacencyList.get(start).length === 0 || this.adjacencyList.get(end).length === 0) {
                     return -1;
                 }
+                
                 this._bfs(this.vertices.get(start));
+                
                 return this.distances.get(end) !== this.infDistance
                     ? this.distances.get(end)
                     : -1;
@@ -80,14 +83,14 @@
             },
 
             _bfs: function (startVertex) {
-                const queue = [];
+                const discoveredVerticesQueue = [];
                 this.distances.set(startVertex.id, 0);
-                queue.push(startVertex);
-                while (queue.length > 0) {
-                    const currentVertex = queue.shift();
+                discoveredVerticesQueue.push(startVertex);
+                while (discoveredVerticesQueue.length > 0) {
+                    const currentVertex = discoveredVerticesQueue.shift();
                     this.adjacencyList.get(currentVertex.id).forEach(adjVertex => {
                         if (this.distances.get(adjVertex.id) === this.infDistance) {
-                            queue.push(adjVertex);
+                            discoveredVerticesQueue.push(adjVertex);
                             this.distances.set(adjVertex.id, this.distances.get(currentVertex.id) + 1);
                             this.previousVertex.set(adjVertex.id, currentVertex.id);
                         }
