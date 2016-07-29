@@ -32,7 +32,7 @@ const UG = (() => {
         }
 
         _buildAdjacencyList(edgeList) {
-            edgeList.forEach((edge) => {
+            edgeList.forEach(edge => {
                 const from = parseInt(edge.split(' ')[0]),
                     to = parseInt(edge.split(' ')[1]);
                 this._addEdge(
@@ -45,10 +45,10 @@ const UG = (() => {
         _addEdge(vertexFrom, vertexTo) {
             const vertexFromAdjList = params.get(this).adjacencyList.get(vertexFrom.id);
             const vertexToAdjList = params.get(this).adjacencyList.get(vertexTo.id);
-            if (!vertexFromAdjList.includes(vertexTo.id)) {
+            if (! vertexFromAdjList.includes(vertexTo.id)) {
                 vertexFromAdjList.push(vertexTo);
             }
-            if (!vertexToAdjList.includes(vertexFrom.id)) {
+            if (! vertexToAdjList.includes(vertexFrom.id)) {
                 vertexToAdjList.push(vertexFrom);
             }
         }
@@ -61,13 +61,14 @@ const UG = (() => {
                 const currentVertex = discoveredVerticesQueue.shift();
                 const currentVertexAdjList = params.get(this).adjacencyList.get(currentVertex.id);
                 for (let adjVertex of currentVertexAdjList) {
-                    if (params.get(this).distances.get(adjVertex.id) !== params.get(this).infDistance &&
-                        params.get(this).distances.get(adjVertex.id) === params.get(this).distances.get(currentVertex.id)) {
-                        return 0;
-                    } else if (params.get(this).distances.get(adjVertex.id) === params.get(this).infDistance) {
+                    const distances = params.get(this).distances;
+                    const previousVertex = params.get(this).previousVertex;
+                    if (distances.get(adjVertex.id) === params.get(this).infDistance) {
                         discoveredVerticesQueue.push(adjVertex);
-                        params.get(this).distances.set(adjVertex.id, params.get(this).distances.get(currentVertex.id) + 1);
-                        params.get(this).previousVertex.set(adjVertex.id, currentVertex.id);
+                        distances.set(adjVertex.id, distances.get(currentVertex.id) + 1);
+                        previousVertex.set(adjVertex.id, currentVertex.id);
+                    } else if (distances.get(adjVertex.id) === distances.get(currentVertex.id)) {
+                        return 0;
                     }
                 }
             }
@@ -89,7 +90,8 @@ const UG = (() => {
 function readInputFile() {
     const argv = process.argv;
     try {
-        return require('fs').readFileSync(argv.length === 3 ? argv[2] : '/dev/stdin', 'utf8');
+        const input = argv.length === 3 ? argv[2] : '/dev/stdin';
+        return require('fs').readFileSync(input, 'utf8');
     } catch (e) {
         if (e.code === 'ENOENT') {
             console.log('File not found!');
