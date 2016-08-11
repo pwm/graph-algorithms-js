@@ -13,7 +13,7 @@ const Heap = (() => {
             type = TYPE_MAX,
             getIdFn = id => id,
             getPriorityFn = p => p,
-            // allows client code to use 1st parameter as node
+            // allows client code to use the 1st parameter freely
             setPriorityFn = (_, p, a, k) => a[k] = p
         ) {
             this.a = [];
@@ -127,6 +127,7 @@ const Heap = (() => {
 
 ////////////////////////////////
 
+// Directed weighted graph
 const DWG = (() => {
     const params = new WeakMap();
 
@@ -145,13 +146,14 @@ const DWG = (() => {
             if (from === to) {
                 return 0;
             }
+
             // from vertex has no outgoing edges
-            if (this._getAdjacencyList().get(from).length === 0) {
+            if (params.get(this).adjacencyList.get(from).length === 0) {
                 return -1;
             }
 
-            const fromNode = this._getVertices().get(from);
-            const toNode = this._getVertices().get(to);
+            const fromNode = params.get(this).vertices.get(from);
+            const toNode = params.get(this).vertices.get(to);
             fromNode.distance = 0;
 
             // create min heap from vertices by distance as priority
@@ -161,18 +163,18 @@ const DWG = (() => {
                 vertex => vertex.distance,
                 (vertex, newDistance) => vertex.distance = newDistance
             );
-            this._getVertices().forEach(function (v) {
+            params.get(this).vertices.forEach(function (v) {
                 minHeap.insert(v);
             });
 
             // explore the graph
             while (minHeap.getSize() > 0) {
                 let currVertex = minHeap.extractRoot();
-                this._getAdjacencyList().get(currVertex.id).forEach(function (edge) {
+                params.get(this).adjacencyList.get(currVertex.id).forEach(function (edge) {
                     let nextVertex = edge.get('vertexTo');
                     let weight = edge.get('weight');
                     if (nextVertex.distance > currVertex.distance + weight) {
-                        this._getPrevVertexMap().set(nextVertex, currVertex);
+                        params.get(this).prevVertexMap.set(nextVertex, currVertex);
                         // this also does: nextVertex.distance = currVertex.distance + weight
                         // because of passing by reference
                         minHeap.changePriority(nextVertex.id, currVertex.distance + weight);
@@ -187,9 +189,9 @@ const DWG = (() => {
 
         _init(vertexKeys, edgeList) {
             for (let vertexKey = 1; vertexKey <= vertexKeys; vertexKey++) {
-                this._getVertices().set(vertexKey, new Vertex(vertexKey, Number.MAX_SAFE_INTEGER));
-                this._getAdjacencyList().set(vertexKey, []);
-                this._getPrevVertexMap().set(vertexKey, null);
+                params.get(this).vertices.set(vertexKey, new Vertex(vertexKey, Number.MAX_SAFE_INTEGER));
+                params.get(this).adjacencyList.set(vertexKey, []);
+                params.get(this).prevVertexMap.set(vertexKey, null);
             }
             this._buildAdjacencyList(edgeList);
         }
@@ -201,15 +203,15 @@ const DWG = (() => {
                     to = parseInt(edge.split(' ')[1]),
                     weight = parseInt(edge.split(' ')[2]);
                 this._addEdge(
-                    this._getVertices().get(from),
-                    this._getVertices().get(to),
+                    params.get(this).vertices.get(from),
+                    params.get(this).vertices.get(to),
                     weight
                 );
             });
         }
 
         _addEdge(vertexFrom, vertexTo, weight) {
-            const vertexFromAdjList = this._getAdjacencyList().get(vertexFrom.id);
+            const vertexFromAdjList = params.get(this).adjacencyList.get(vertexFrom.id);
             if (! vertexFromAdjList.includes(vertexTo.id)) {
                 vertexFromAdjList.push(
                     (new Map())
@@ -217,18 +219,6 @@ const DWG = (() => {
                         .set('weight', weight)
                 );
             }
-        }
-
-        _getVertices() {
-            return params.get(this).vertices;
-        }
-
-        _getAdjacencyList() {
-            return params.get(this).adjacencyList;
-        }
-
-        _getPrevVertexMap() {
-            return params.get(this).prevVertexMap;
         }
     }
 
