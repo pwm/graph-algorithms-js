@@ -6,13 +6,10 @@ const UG = (() => {
     class UG {
         constructor(vertexKeys, edgeList) {
             params.set(this, {
-                vertices: new Map(),
-                adjacencyList: new Map(),
-                distances: new Map(),
-                previousVertex: new Map(),
-                infDistance: vertexKeys > edgeList.length
-                    ? vertexKeys
-                    : edgeList.length
+                vertices       : new Map(),
+                adjacencyList  : new Map(),
+                distances      : new Map(),
+                previousVertex : new Map()
             });
             this._init(vertexKeys, edgeList);
         }
@@ -24,8 +21,8 @@ const UG = (() => {
         _init(vertexKeys, edgeList) {
             for (let vertexKey = 1; vertexKey <= vertexKeys; vertexKey++) {
                 params.get(this).vertices.set(vertexKey, new Vertex(vertexKey));
-                params.get(this).adjacencyList.set(vertexKey, []);
-                params.get(this).distances.set(vertexKey, params.get(this).infDistance);
+                params.get(this).adjacencyList.set(vertexKey, new Set());
+                params.get(this).distances.set(vertexKey, Number.MAX_SAFE_INTEGER);
                 params.get(this).previousVertex.set(vertexKey, null);
             }
             this._buildAdjacencyList(edgeList);
@@ -33,8 +30,7 @@ const UG = (() => {
 
         _buildAdjacencyList(edgeList) {
             edgeList.forEach(edge => {
-                const from = parseInt(edge.split(' ')[0]),
-                    to = parseInt(edge.split(' ')[1]);
+                let [from, to] = edge.split(' ').map(x => parseInt(x));
                 this._addEdge(
                     params.get(this).vertices.get(from),
                     params.get(this).vertices.get(to)
@@ -45,11 +41,11 @@ const UG = (() => {
         _addEdge(vertexFrom, vertexTo) {
             const vertexFromAdjList = params.get(this).adjacencyList.get(vertexFrom.id);
             const vertexToAdjList = params.get(this).adjacencyList.get(vertexTo.id);
-            if (! vertexFromAdjList.includes(vertexTo.id)) {
-                vertexFromAdjList.push(vertexTo);
+            if (! vertexFromAdjList.has(vertexTo)) {
+                vertexFromAdjList.add(vertexTo);
             }
-            if (! vertexToAdjList.includes(vertexFrom.id)) {
-                vertexToAdjList.push(vertexFrom);
+            if (! vertexToAdjList.has(vertexFrom)) {
+                vertexToAdjList.add(vertexFrom);
             }
         }
 
@@ -63,7 +59,7 @@ const UG = (() => {
                 for (let adjVertex of currentVertexAdjList) {
                     const distances = params.get(this).distances;
                     const previousVertex = params.get(this).previousVertex;
-                    if (distances.get(adjVertex.id) === params.get(this).infDistance) {
+                    if (distances.get(adjVertex.id) === Number.MAX_SAFE_INTEGER) {
                         discoveredVerticesQueue.push(adjVertex);
                         distances.set(adjVertex.id, distances.get(currentVertex.id) + 1);
                         previousVertex.set(adjVertex.id, currentVertex.id);

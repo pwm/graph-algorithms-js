@@ -134,9 +134,9 @@ const DWG = (() => {
     class DWG {
         constructor(vertexKeys, edgeList) {
             params.set(this, {
-                vertices: new Map(),
-                adjacencyList: new Map(),
-                prevVertexMap: new Map(),
+                vertices      : new Map(),
+                adjacencyList : new Map(),
+                prevVertexMap : new Map()
             });
             this._init(vertexKeys, edgeList);
         }
@@ -148,7 +148,7 @@ const DWG = (() => {
             }
 
             // from vertex has no outgoing edges
-            if (params.get(this).adjacencyList.get(from).length === 0) {
+            if (params.get(this).adjacencyList.get(from).size === 0) {
                 return -1;
             }
 
@@ -163,23 +163,19 @@ const DWG = (() => {
                 vertex => vertex.distance,
                 (vertex, newDistance) => vertex.distance = newDistance
             );
-            params.get(this).vertices.forEach(function (v) {
-                minHeap.insert(v);
-            });
+            params.get(this).vertices.forEach(v => { minHeap.insert(v); });
 
             // explore the graph
             while (minHeap.getSize() > 0) {
                 let currVertex = minHeap.extractRoot();
-                params.get(this).adjacencyList.get(currVertex.id).forEach(function (edge) {
-                    let nextVertex = edge.get('vertexTo');
-                    let weight = edge.get('weight');
+                params.get(this).adjacencyList.get(currVertex.id).forEach((weight, nextVertex) => {
                     if (nextVertex.distance > currVertex.distance + weight) {
-                        params.get(this).prevVertexMap.set(nextVertex, currVertex);
+                        params.get(this).prevVertexMap.set(nextVertex.id, currVertex);
                         // this also does: nextVertex.distance = currVertex.distance + weight
                         // because of passing by reference
                         minHeap.changePriority(nextVertex.id, currVertex.distance + weight);
                     }
-                }, this);
+                });
             }
 
             return toNode.distance < Number.MAX_SAFE_INTEGER
@@ -190,7 +186,7 @@ const DWG = (() => {
         _init(vertexKeys, edgeList) {
             for (let vertexKey = 1; vertexKey <= vertexKeys; vertexKey++) {
                 params.get(this).vertices.set(vertexKey, new Vertex(vertexKey, Number.MAX_SAFE_INTEGER));
-                params.get(this).adjacencyList.set(vertexKey, []);
+                params.get(this).adjacencyList.set(vertexKey, new Map());
                 params.get(this).prevVertexMap.set(vertexKey, null);
             }
             this._buildAdjacencyList(edgeList);
@@ -198,10 +194,7 @@ const DWG = (() => {
 
         _buildAdjacencyList(edgeList) {
             edgeList.forEach(edge => {
-                const
-                    from = parseInt(edge.split(' ')[0]),
-                    to = parseInt(edge.split(' ')[1]),
-                    weight = parseInt(edge.split(' ')[2]);
+                let [from, to, weight] = edge.split(' ').map(x => parseInt(x));
                 this._addEdge(
                     params.get(this).vertices.get(from),
                     params.get(this).vertices.get(to),
@@ -212,12 +205,8 @@ const DWG = (() => {
 
         _addEdge(vertexFrom, vertexTo, weight) {
             const vertexFromAdjList = params.get(this).adjacencyList.get(vertexFrom.id);
-            if (! vertexFromAdjList.includes(vertexTo.id)) {
-                vertexFromAdjList.push(
-                    (new Map())
-                        .set('vertexTo', vertexTo)
-                        .set('weight', weight)
-                );
+            if (! vertexFromAdjList.has(vertexTo)) {
+                vertexFromAdjList.set(vertexTo, weight);
             }
         }
     }
@@ -260,5 +249,4 @@ var end = parseInt(verticesToConnect.split(' ')[1]);
 // note: lines = edgeList
 
 // find path with the minimum weight
-const dwg = new DWG(vertexKeys, lines);
-console.log(dwg.dijkstra(start, end));
+console.log((new DWG(vertexKeys, lines)).dijkstra(start, end));
