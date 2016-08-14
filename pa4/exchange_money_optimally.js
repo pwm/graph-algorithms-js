@@ -40,7 +40,6 @@ const DWG = (() => {
                 params.get(this).adjacencyList.get(currentVertexId).forEach((_, adjVertexId) => {
                     let adjVertex = params.get(this).vertices.get(adjVertexId);
                     if (adjVertex.stepsFromNWC === Number.MAX_SAFE_INTEGER) {
-                        //@todo: do we add these to the queue?
                         params.get(this).verticesRelaxedInLastIteration.push(adjVertexId);
                         adjVertex.stepsFromNWC = currentVertex.stepsFromNWC + 1;
                     }
