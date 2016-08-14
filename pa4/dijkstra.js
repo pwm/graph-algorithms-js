@@ -132,29 +132,26 @@ const DWG = (() => {
     const params = new WeakMap();
 
     class DWG {
-        constructor(vertexKeys, edgeList) {
-            params.set(this, {
-                vertices      : new Map(),
-                adjacencyList : new Map(),
-                prevVertexMap : new Map()
-            });
-            this._init(vertexKeys, edgeList);
+        constructor(vertexIds, edgeList) {
+            this._reset();
+            this._init(vertexIds, edgeList);
         }
 
-        dijkstra(from, to) {
+        dijkstra(fromId, toId) {
             // same vertex
-            if (from === to) {
+            if (fromId === toId) {
                 return 0;
             }
 
             // from vertex has no outgoing edges
-            if (params.get(this).adjacencyList.get(from).size === 0) {
+            if (params.get(this).adjacencyList.get(fromId).size === 0) {
                 return -1;
             }
 
-            const fromNode = params.get(this).vertices.get(from);
-            const toNode = params.get(this).vertices.get(to);
-            fromNode.distance = 0;
+            const fromVertex = params.get(this).vertices.get(fromId);
+            const toVertex = params.get(this).vertices.get(toId);
+            // set start distance to 0
+            fromVertex.distance = 0;
 
             // create min heap from vertices by distance as priority
             const minHeap = new Heap(
@@ -168,46 +165,44 @@ const DWG = (() => {
             // explore the graph
             while (minHeap.getSize() > 0) {
                 let currVertex = minHeap.extractRoot();
-                params.get(this).adjacencyList.get(currVertex.id).forEach((weight, nextVertex) => {
+                params.get(this).adjacencyList.get(currVertex.id).forEach((weight, nextVertexId) => {
+                    let nextVertex = params.get(this).vertices.get(nextVertexId);
                     if (nextVertex.distance > currVertex.distance + weight) {
-                        params.get(this).prevVertexMap.set(nextVertex.id, currVertex);
-                        // this also does: nextVertex.distance = currVertex.distance + weight
+                        params.get(this).prevVertexMap.set(nextVertexId, currVertex.id);
+                        // note: this also does nextVertex.distance = currVertex.distance + weight
                         // because of passing by reference
                         minHeap.changePriority(nextVertex.id, currVertex.distance + weight);
                     }
                 });
             }
 
-            return toNode.distance < Number.MAX_SAFE_INTEGER
-                ? toNode.distance
+            return toVertex.distance < Number.MAX_SAFE_INTEGER
+                ? toVertex.distance
                 : -1;
         }
-
-        _init(vertexKeys, edgeList) {
-            for (let vertexKey = 1; vertexKey <= vertexKeys; vertexKey++) {
-                params.get(this).vertices.set(vertexKey, new Vertex(vertexKey, Number.MAX_SAFE_INTEGER));
-                params.get(this).adjacencyList.set(vertexKey, new Map());
-                params.get(this).prevVertexMap.set(vertexKey, null);
-            }
-            this._buildAdjacencyList(edgeList);
-        }
-
-        _buildAdjacencyList(edgeList) {
-            edgeList.forEach(edge => {
-                let [from, to, weight] = edge.split(' ').map(x => parseInt(x));
-                this._addEdge(
-                    params.get(this).vertices.get(from),
-                    params.get(this).vertices.get(to),
-                    weight
-                );
+        
+        _reset() {
+            params.set(this, {
+                vertices      : new Map(),
+                adjacencyList : new Map(),
+                prevVertexMap : new Map()
             });
         }
 
-        _addEdge(vertexFrom, vertexTo, weight) {
-            const vertexFromAdjList = params.get(this).adjacencyList.get(vertexFrom.id);
-            if (! vertexFromAdjList.has(vertexTo)) {
-                vertexFromAdjList.set(vertexTo, weight);
+        _init(vertexIds, edgeList) {
+            for (let vertexId = 1; vertexId <= vertexIds; vertexId++) {
+                params.get(this).vertices.set(vertexId, new Vertex(vertexId, Number.MAX_SAFE_INTEGER));
+                params.get(this).adjacencyList.set(vertexId, new Map());
+                params.get(this).prevVertexMap.set(vertexId, null);
             }
+            
+            edgeList.forEach(edge => {
+                let [fromId, toId, weight] = edge.split(' ').map(x => parseInt(x));
+                let vertexFromAdjList = params.get(this).adjacencyList.get(fromId);
+                if (! vertexFromAdjList.has(toId)) {
+                    vertexFromAdjList.set(toId, weight);
+                }
+            });
         }
     }
 
@@ -241,7 +236,7 @@ function readInputFile() {
 
 const lines = readInputFile().match(/[^\r\n]+/g);
 const verticesEdges = lines.shift();
-const vertexKeys = parseInt(verticesEdges.split(' ')[0]);
+const vertexIds = parseInt(verticesEdges.split(' ')[0]);
 
 var verticesToConnect = lines.pop();
 var start = parseInt(verticesToConnect.split(' ')[0]);
@@ -249,4 +244,4 @@ var end = parseInt(verticesToConnect.split(' ')[1]);
 // note: lines = edgeList
 
 // find path with the minimum weight
-console.log((new DWG(vertexKeys, lines)).dijkstra(start, end));
+console.log((new DWG(vertexIds, lines)).dijkstra(start, end));

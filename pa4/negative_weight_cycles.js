@@ -5,28 +5,22 @@ const DWG = (() => {
     const params = new WeakMap();
 
     class DWG {
-        constructor(vertexKeys, edgeList) {
-            params.set(this, {
-                vertices                       : new Map(),
-                edges                          : new Set(),
-                relaxedVerticesInLastIteration : new Set(),
-                prevVertexMap                  : new Map()
-            });
-            this._init(vertexKeys, edgeList);
+        constructor(vertexIds, edgeList) {
+            this._reset();
+            this._init(vertexIds, edgeList);
         }
 
         hasNegativeWeightCycles() {
             // set the first vertex's distance to 0
             params.get(this).vertices.values().next().value.distance = 0;
-            // iterate |V| times and save vertices the got relaxed in the last iteration
+            // iterate |V| times and save vertices that got relaxed in the last iteration
             const numberOfVertices = params.get(this).vertices.size;
             for (let i = 1; i <= numberOfVertices; i++) {
                 params.get(this).edges.forEach(edge => {
-                    let fromVertex = params.get(this).vertices.get(parseInt(edge.from));
-                    let toVertex = params.get(this).vertices.get(edge.to);
+                    let fromVertex = params.get(this).vertices.get(edge.fromId);
+                    let toVertex = params.get(this).vertices.get(edge.toId);
                     if (toVertex.distance > fromVertex.distance + edge.weight) {
                         toVertex.distance = fromVertex.distance + edge.weight;
-                        params.get(this).prevVertexMap.set(toVertex.id, fromVertex);
                         if (i === numberOfVertices) {
                             params.get(this).relaxedVerticesInLastIteration.add(toVertex);
                         }
@@ -36,17 +30,24 @@ const DWG = (() => {
             return params.get(this).relaxedVerticesInLastIteration.size > 0 ? 1 : 0;
         }
 
-        _init(vertexKeys, edgeList) {
-            for (let vertexKey = 1; vertexKey <= vertexKeys; vertexKey++) {
-                params.get(this).vertices.set(vertexKey, new Vertex(vertexKey, Number.MAX_SAFE_INTEGER));
-                params.get(this).prevVertexMap.set(vertexKey, null);
+        _reset() {
+            params.set(this, {
+                vertices : new Map(),
+                edges    : new Set(),
+                relaxedVerticesInLastIteration : new Set()
+            });
+        }
+
+        _init(vertexIds, edgeList) {
+            for (let vertexId = 1; vertexId <= vertexIds; vertexId++) {
+                params.get(this).vertices.set(vertexId, new Vertex(vertexId));
             }
 
             edgeList.forEach(edge => {
-                let [from, to, weight] = edge.split(' ').map(x => parseInt(x));
+                let [fromId, toId, weight] = edge.split(' ').map(x => parseInt(x));
                 params.get(this).edges.add({
-                    'from'   : from,
-                    'to'     : to,
+                    'fromId' : fromId,
+                    'toId'   : toId,
                     'weight' : weight
                 });
             });
@@ -54,9 +55,9 @@ const DWG = (() => {
     }
 
     class Vertex {
-        constructor(id, distance) {
+        constructor(id) {
             this.id = id;
-            this.distance = distance;
+            this.distance = Number.MAX_SAFE_INTEGER;
         }
     }
 
@@ -83,7 +84,7 @@ function readInputFile() {
 
 const lines = readInputFile().match(/[^\r\n]+/g);
 const verticesEdges = lines.shift();
-const vertexKeys = parseInt(verticesEdges.split(' ')[0]);
+const vertexIds = parseInt(verticesEdges.split(' ')[0]);
 // note: lines = edgeList
 
-console.log((new DWG(vertexKeys, lines)).hasNegativeWeightCycles());
+console.log((new DWG(vertexIds, lines)).hasNegativeWeightCycles());
