@@ -6,13 +6,11 @@ class DisjointSet {
     }
 
     makeSet(key) {
-        key = parseInt(key);
         this.parent[key] = key;
         this.rank[key]   = 0;
     }
 
     find(key) {
-        key = parseInt(key);
         let parentKey = this.parent[key];
         if (parentKey === undefined) {
             return null;
@@ -24,12 +22,10 @@ class DisjointSet {
     }
 
     union(keyX, keyY) {
-        keyX = parseInt(keyX);
-        keyY = parseInt(keyY);
-        var parentKeyX = this.find(keyX);
-        var parentKeyY = this.find(keyY);
+        const parentKeyX = this.find(keyX);
+        const parentKeyY = this.find(keyY);
         if (parentKeyX === null || parentKeyY === null) {
-            throw new Error('Unknown set.');
+            throw new Error('Unknown key(s).');
         }
         if (parentKeyX === parentKeyY) {
             return true;
@@ -46,7 +42,7 @@ class DisjointSet {
 
     _reset() {
         this.parent = [];
-        this.rank = [];
+        this.rank   = [];
     }
 }
 
@@ -70,12 +66,15 @@ function readInputFile() {
 
 const lines = readInputFile().match(/[^\r\n]+/g);
 lines.shift(); // remove 1st line (number of vertices)
+
+// we want to end up with this many clusters
 const requiredNumberOfClusters = parseInt(lines.pop());
 
 // vertices are [coordinateX, coordinateY] arrays, vertex ids starts from 0
 const vertices = lines.map(x => x.split(' ').map(y => parseInt(y)));
-// edges are: [vertexFromId, vertexToId, weight] arrays
-// note: this graph is complete
+
+// edges are [vertexFromId, vertexToId, weight] arrays
+// note that this graph is complete
 const edges = [];
 for (let i = 0; i < vertices.length; i++) {
     for (let j = i + 1; j < vertices.length; j++) {
@@ -87,17 +86,16 @@ for (let i = 0; i < vertices.length; i++) {
     }
 }
 
-const ds = new DisjointSet();
-
 // create |V| disjoint sets from vertex ids
+const ds = new DisjointSet();
 vertices.forEach((_, i) => ds.makeSet(i));
 
-// sort edges by weight ascending
+// sort edges by weight non-descending
 edges.sort((a, b) => a[2] - b[2]);
 
 let numberOfClusters = vertices.length;
 // already reached the required number of clusters
-if (numberOfClusters === requiredNumberOfClusters) {
+if (numberOfClusters <= requiredNumberOfClusters) {
     console.log(edges.shift()[2]);
 // start clustering
 } else {
